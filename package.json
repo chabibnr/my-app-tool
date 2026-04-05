@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
     "dev:renderer": "vite --port 6173 --strictPort",
-    "dev:electron": "wait-on http://localhost:6173 && cross-env NODE_ENV=development tsx src/main/main.ts",
+    "dev:electron": "wait-on http://localhost:6173 && tsc --project tsconfig.json && cross-env NODE_ENV=development electron .",
     "build": "npm run build:renderer && npm run build:main && electron-builder",
     "build:renderer": "tsc --project tsconfig.renderer.json --noEmit && vite build",
     "build:main": "tsc --project tsconfig.json",
@@ -46,6 +46,7 @@
     "electron-builder": "^24.0.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "nodemon": "^3.1.14",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "vite": "^5.0.0",

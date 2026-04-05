@@ -1,8 +1,25 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import * as path from 'path'
+import * as fs from 'fs'
 import PluginManager from './plugin-manager'
 import CoreAPI from './core-api'
 import { setupIPC } from './ipc-handlers'
+
+// File logger — writes to project root/electron.log so errors are visible
+const logFile = path.join(__dirname, '../../electron.log')
+function log(...args: unknown[]): void {
+  const line = `[${new Date().toISOString()}] ${args.join(' ')}\n`
+  process.stdout.write(line)
+  fs.appendFileSync(logFile, line)
+}
+function logError(...args: unknown[]): void {
+  const line = `[${new Date().toISOString()}] ERROR: ${args.map(a => a instanceof Error ? a.stack : String(a)).join(' ')}\n`
+  process.stderr.write(line)
+  fs.appendFileSync(logFile, line)
+}
+
+// Clear log on each start
+try { fs.writeFileSync(logFile, `--- Electron started at ${new Date().toISOString()} ---\n`) } catch {}
 
 let mainWindow: BrowserWindow | undefined
 let pluginManager: InstanceType<typeof PluginManager>
@@ -47,27 +64,44 @@ async function createWindow(): Promise<void> {
 }
 
 async function bootstrap(): Promise<void> {
-  await app.whenReady()
+  try {
+    log('Bootstrap starting...')
+    await app.whenReady()
+    log('App ready, version:', app.getVersion())
 
-  coreAPI = new CoreAPI({ mainWindow: () => mainWindow })
-  pluginManager = new PluginManager(coreAPI)
+    coreAPI = new CoreAPI({ mainWindow: () => mainWindow })
+    log('CoreAPI initialized')
 
-  setupIPC(ipcMain, pluginManager, coreAPI)
+    pluginManager = new PluginManager(coreAPI)
+    log('PluginManager initialized')
 
-  await createWindow()
-  await pluginManager.loadAll()
+    setupIPC(ipcMain, pluginManager, coreAPI)
+    log('IPC handlers set up')
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
-  })
+    await createWindow()
+    log('Window created')
+
+    await pluginManager.loadAll()
+    log('Plugins loaded')
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) void createWindow()
+    })
+
+    app.on('window-all-closed', () => {
+      if (process.platform !== 'darwin') app.quit()
+    })
+
+    app.on('before-quit', async () => {
+      log('App quitting, unloading plugins...')
+      await pluginManager.unloadAll()
+    })
+
+    log('Bootstrap complete')
+  } catch (error) {
+    logError(error)
+    process.exit(1)
+  }
 }
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') app.quit()
-})
-
-app.on('before-quit', () => {
-  void pluginManager.unloadAll()
-})
 
 void bootstrap()

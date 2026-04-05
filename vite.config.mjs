@@ -18,5 +18,8 @@ export default defineConfig({
   build: {
     outDir: '../../dist/renderer',
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['electron'], // Tell the bundler NOT to try and "solve" electron
+    },
   },
 })

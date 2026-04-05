@@ -5,11 +5,6 @@ import { EventEmitter } from 'events'
 import type CoreAPI from './core-api'
 import type { Plugin, PluginManifest, PluginRecord } from '../types/global'
 
-const PLUGIN_DIRS = [
-  path.join(app.getPath('userData'), 'plugins'),
-  path.join(__dirname, '../../plugins'),
-]
-
 class PluginManager extends EventEmitter {
   private coreAPI: InstanceType<typeof CoreAPI>
   private plugins: Map<string, PluginRecord>
@@ -20,8 +15,16 @@ class PluginManager extends EventEmitter {
     this.plugins = new Map()
   }
 
+  /** Get plugin directories (lazy-loaded to ensure app.getPath is available) */
+  private getPluginDirs(): string[] {
+    return [
+      path.join(app.getPath('userData'), 'plugins'),
+      path.join(__dirname, '../../plugins'),
+    ]
+  }
+
   async loadAll(): Promise<void> {
-    for (const dir of PLUGIN_DIRS) {
+    for (const dir of this.getPluginDirs()) {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true })
         continue
