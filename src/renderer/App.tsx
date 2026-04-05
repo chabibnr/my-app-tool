@@ -7,6 +7,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import { usePluginStore } from './stores/plugin-store'
 import Titlebar from './components/Titlebar'
+import UserInfo from './components/UserInfo'
 import PluginsPage from './pages/PluginsPage'
 import SshTerminalPage from './pages/SshTerminalPage'
 import { cn } from './lib/utils'
@@ -78,6 +79,9 @@ export default function App() {
             onReload={reloadPlugin}
             onUnload={unloadPlugin}
           />
+
+          {/* User info */}
+          <UserInfo />
         </aside>
 
         {/* Main content */}
