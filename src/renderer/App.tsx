@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  LayoutGrid, RefreshCw, X, ChevronDown, ChevronUp,
+  LayoutGrid,
   Terminal, Settings, Monitor, Radio, ClipboardList, BarChart2, Zap,
   AlertCircle, Puzzle,
 } from 'lucide-react'
@@ -10,7 +10,8 @@ import Titlebar from './components/Titlebar'
 import PluginsPage from './pages/PluginsPage'
 import SshTerminalPage from './pages/SshTerminalPage'
 import { cn } from './lib/utils'
-import type { Plugin, PanelDefinition } from '../types/global'
+import type { PanelDefinition } from '../types/global'
+import UserInfo from './components/UserInfo'
 
 // Map pluginId → renderer component
 const PLUGIN_PAGES: Record<string, React.ComponentType> = {
@@ -23,7 +24,7 @@ const CORE_PAGES = [
 ]
 
 export default function App() {
-  const { plugins, panels, errors, fetchPlugins, reloadPlugin, unloadPlugin, init } = usePluginStore()
+  const { panels, errors, fetchPlugins, init } = usePluginStore()
   const [activePage, setActivePage] = useState('plugins')
 
   useEffect(() => {
@@ -72,12 +73,8 @@ export default function App() {
             ))}
           </div>
 
-          {/* Plugin list footer */}
-          <PluginList
-            plugins={plugins}
-            onReload={reloadPlugin}
-            onUnload={unloadPlugin}
-          />
+          {/* User info footer */}
+          <UserInfo />
         </aside>
 
         {/* Main content */}
@@ -148,65 +145,6 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
       {Icon && <Icon className="size-4 shrink-0" />}
       <span className="truncate">{label}</span>
     </button>
-  )
-}
-
-interface PluginListProps {
-  plugins: Plugin[]
-  onReload: (id: string) => Promise<void>
-  onUnload: (id: string) => Promise<void>
-}
-
-function PluginList({ plugins, onReload, onUnload }: PluginListProps) {
-  const [open, setOpen] = useState(false)
-
-  return (
-    <div className="border-t border-sidebar-border">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full px-3 py-2.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <span className="font-semibold uppercase tracking-wider text-[10px]">
-          Loaded ({plugins.length})
-        </span>
-        {open ? <ChevronDown className="size-3" /> : <ChevronUp className="size-3" />}
-      </button>
-
-      {open && (
-        <div className="pb-2 px-2 space-y-0.5 max-h-40 overflow-y-auto">
-          {plugins.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/5 group">
-              <span className="flex-1 text-xs text-foreground truncate">{p.name}</span>
-              <span className={cn(
-                'text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0',
-                p.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground',
-              )}>
-                {p.status}
-              </span>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => void onReload(p.id)}
-                  className="p-1 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Reload"
-                >
-                  <RefreshCw className="size-3" />
-                </button>
-                <button
-                  onClick={() => void onUnload(p.id)}
-                  className="p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-muted-foreground transition-colors"
-                  title="Unload"
-                >
-                  <X className="size-3" />
-                </button>
-              </div>
-            </div>
-          ))}
-          {plugins.length === 0 && (
-            <p className="px-2 py-1 text-xs text-muted-foreground/50 italic">No plugins loaded</p>
-          )}
-        </div>
-      )}
-    </div>
   )
 }
 
