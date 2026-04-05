@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react'
 import {
-  LayoutGrid, RefreshCw, X, ChevronDown, ChevronUp,
+  LayoutGrid,
   Terminal, Settings, Monitor, Radio, ClipboardList, BarChart2, Zap,
   AlertCircle, Puzzle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { usePluginStore } from './stores/plugin-store'
 import Titlebar from './components/Titlebar'
-import UserInfo from './components/UserInfo'
 import PluginsPage from './pages/PluginsPage'
 import SshTerminalPage from './pages/SshTerminalPage'
 import { cn } from './lib/utils'
-import type { Plugin, PanelDefinition } from '../types/global'
+import type { PanelDefinition } from '../types/global'
 
 // Map pluginId → renderer component
 const PLUGIN_PAGES: Record<string, React.ComponentType> = {
@@ -24,7 +23,7 @@ const CORE_PAGES = [
 ]
 
 export default function App() {
-  const { plugins, panels, errors, fetchPlugins, reloadPlugin, unloadPlugin, init } = usePluginStore()
+  const { panels, errors, fetchPlugins, init } = usePluginStore()
   const [activePage, setActivePage] = useState('plugins')
 
   useEffect(() => {
@@ -73,14 +72,7 @@ export default function App() {
             ))}
           </div>
 
-          {/* Plugin list footer */}
-          <PluginList
-            plugins={plugins}
-            onReload={reloadPlugin}
-            onUnload={unloadPlugin}
-          />
-
-          {/* User info */}
+          {/* User info footer */}
           <UserInfo />
         </aside>
 
@@ -155,61 +147,35 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
   )
 }
 
-interface PluginListProps {
-  plugins: Plugin[]
-  onReload: (id: string) => Promise<void>
-  onUnload: (id: string) => Promise<void>
+interface UserInfoProps {
+  name?: string
+  email?: string
+  avatarUrl?: string
 }
 
-function PluginList({ plugins, onReload, onUnload }: PluginListProps) {
-  const [open, setOpen] = useState(false)
+function UserInfo({ name = 'Developer', email = 'dev@example.com', avatarUrl }: UserInfoProps) {
+  const initials = name
+    .split(' ')
+    .map(w => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
-    <div className="border-t border-sidebar-border">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="flex items-center justify-between w-full px-3 py-2.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <span className="font-semibold uppercase tracking-wider text-[10px]">
-          Loaded ({plugins.length})
-        </span>
-        {open ? <ChevronDown className="size-3" /> : <ChevronUp className="size-3" />}
-      </button>
+    <div className="border-t border-sidebar-border px-3 py-3 flex items-center gap-2.5 shrink-0">
+      {/* Avatar circle */}
+      <div className="size-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0 overflow-hidden">
+        {avatarUrl
+          ? <img src={avatarUrl} alt={name} className="size-full object-cover" />
+          : <span className="text-[11px] font-semibold text-blue-400 leading-none">{initials}</span>
+        }
+      </div>
 
-      {open && (
-        <div className="pb-2 px-2 space-y-0.5 max-h-40 overflow-y-auto">
-          {plugins.map((p) => (
-            <div key={p.id} className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-white/5 group">
-              <span className="flex-1 text-xs text-foreground truncate">{p.name}</span>
-              <span className={cn(
-                'text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0',
-                p.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-muted text-muted-foreground',
-              )}>
-                {p.status}
-              </span>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => void onReload(p.id)}
-                  className="p-1 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
-                  title="Reload"
-                >
-                  <RefreshCw className="size-3" />
-                </button>
-                <button
-                  onClick={() => void onUnload(p.id)}
-                  className="p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-muted-foreground transition-colors"
-                  title="Unload"
-                >
-                  <X className="size-3" />
-                </button>
-              </div>
-            </div>
-          ))}
-          {plugins.length === 0 && (
-            <p className="px-2 py-1 text-xs text-muted-foreground/50 italic">No plugins loaded</p>
-          )}
-        </div>
-      )}
+      {/* Name & email */}
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-foreground truncate leading-tight">{name}</p>
+        <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{email}</p>
+      </div>
     </div>
   )
 }

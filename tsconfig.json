@@ -18,5 +18,8 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/main/**/*"],
-  "exclude": ["node_modules", "dist", "src/renderer"]
+  "exclude": ["node_modules", "dist", "src/renderer"],
+  "references": [
+    { "path": "./tsconfig.renderer.json" }
+  ]
 }
