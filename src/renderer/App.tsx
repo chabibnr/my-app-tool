@@ -11,6 +11,7 @@ import PluginsPage from './pages/PluginsPage'
 import SshTerminalPage from './pages/SshTerminalPage'
 import { cn } from './lib/utils'
 import type { PanelDefinition } from '../types/global'
+import UserInfo from './components/UserInfo'
 
 // Map pluginId → renderer component
 const PLUGIN_PAGES: Record<string, React.ComponentType> = {
@@ -144,39 +145,6 @@ function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
       {Icon && <Icon className="size-4 shrink-0" />}
       <span className="truncate">{label}</span>
     </button>
-  )
-}
-
-interface UserInfoProps {
-  name?: string
-  email?: string
-  avatarUrl?: string
-}
-
-function UserInfo({ name = 'Developer', email = 'dev@example.com', avatarUrl }: UserInfoProps) {
-  const initials = name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
-  return (
-    <div className="border-t border-sidebar-border px-3 py-3 flex items-center gap-2.5 shrink-0">
-      {/* Avatar circle */}
-      <div className="size-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0 overflow-hidden">
-        {avatarUrl
-          ? <img src={avatarUrl} alt={name} className="size-full object-cover" />
-          : <span className="text-[11px] font-semibold text-blue-400 leading-none">{initials}</span>
-        }
-      </div>
-
-      {/* Name & email */}
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-foreground truncate leading-tight">{name}</p>
-        <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">{email}</p>
-      </div>
-    </div>
   )
 }
 
