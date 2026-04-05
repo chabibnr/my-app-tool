@@ -1,23 +1,30 @@
-const path = require('path')
-const fs = require('fs')
-const { app } = require('electron')
-const EventEmitter = require('events')
-
-const PLUGIN_DIRS = [
-  path.join(app.getPath('userData'), 'plugins'),
-  path.join(__dirname, '../../plugins'),
-]
+import * as path from 'path'
+import * as fs from 'fs'
+import { app } from 'electron'
+import { EventEmitter } from 'events'
+import type CoreAPI from './core-api'
+import type { Plugin, PluginManifest, PluginRecord } from '../types/global'
 
 class PluginManager extends EventEmitter {
-  constructor(coreAPI) {
+  private coreAPI: InstanceType<typeof CoreAPI>
+  private plugins: Map<string, PluginRecord>
+
+  constructor(coreAPI: InstanceType<typeof CoreAPI>) {
     super()
     this.coreAPI = coreAPI
     this.plugins = new Map()
-    this.panels = new Map()
   }
 
-  async loadAll() {
-    for (const dir of PLUGIN_DIRS) {
+  /** Get plugin directories (lazy-loaded to ensure app.getPath is available) */
+  private getPluginDirs(): string[] {
+    return [
+      path.join(app.getPath('userData'), 'plugins'),
+      path.join(__dirname, '../../plugins'),
+    ]
+  }
+
+  async loadAll(): Promise<void> {
+    for (const dir of this.getPluginDirs()) {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true })
         continue
@@ -25,7 +32,7 @@ class PluginManager extends EventEmitter {
       const entries = fs.readdirSync(dir, { withFileTypes: true })
       for (const entry of entries) {
         if (!entry.isDirectory()) continue
-        await this.loadPlugin(path.join(dir, entry.name)).catch(err => {
+        await this.loadPlugin(path.join(dir, entry.name)).catch((err: Error) => {
           console.error(`[PluginManager] Failed to load ${entry.name}:`, err.message)
           this.emit('plugin:error', { id: entry.name, error: err.message })
         })
@@ -34,11 +41,11 @@ class PluginManager extends EventEmitter {
     this.emit('plugins:loaded', this.getAll())
   }
 
-  async loadPlugin(pluginPath) {
+  async loadPlugin(pluginPath: string): Promise<PluginManifest> {
     const manifestPath = path.join(pluginPath, 'manifest.json')
     if (!fs.existsSync(manifestPath)) throw new Error('manifest.json not found')
 
-    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
+    const manifest: PluginManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))
     this._validateManifest(manifest)
 
     if (this.plugins.has(manifest.id)) {
@@ -48,7 +55,7 @@ class PluginManager extends EventEmitter {
     const mainPath = path.join(pluginPath, manifest.main || 'main.js')
     if (!fs.existsSync(mainPath)) throw new Error(`main file not found: ${mainPath}`)
 
-    const pluginModule = require(mainPath)
+    const pluginModule = require(mainPath) as { activate: (api: unknown) => void | Promise<void>; deactivate?: () => void | Promise<void> }
     if (typeof pluginModule.activate !== 'function') {
       throw new Error('Plugin must export activate(coreAPI)')
     }
@@ -70,7 +77,7 @@ class PluginManager extends EventEmitter {
     return manifest
   }
 
-  async unloadPlugin(pluginId) {
+  async unloadPlugin(pluginId: string): Promise<void> {
     const plugin = this.plugins.get(pluginId)
     if (!plugin) throw new Error(`Plugin ${pluginId} not loaded`)
 
@@ -84,13 +91,13 @@ class PluginManager extends EventEmitter {
     this.emit('plugin:deactivated', { id: pluginId })
   }
 
-  async unloadAll() {
+  async unloadAll(): Promise<void> {
     for (const [id] of this.plugins) {
       await this.unloadPlugin(id).catch(console.error)
     }
   }
 
-  async reloadPlugin(pluginId) {
+  async reloadPlugin(pluginId: string): Promise<void> {
     const plugin = this.plugins.get(pluginId)
     if (!plugin) throw new Error(`Plugin ${pluginId} not loaded`)
     const pluginPath = plugin.path
@@ -98,7 +105,7 @@ class PluginManager extends EventEmitter {
     await this.loadPlugin(pluginPath)
   }
 
-  getAll() {
+  getAll(): Plugin[] {
     return Array.from(this.plugins.values()).map(p => ({
       id: p.manifest.id,
       name: p.manifest.name,
@@ -112,19 +119,19 @@ class PluginManager extends EventEmitter {
     }))
   }
 
-  get(pluginId) {
+  get(pluginId: string): PluginRecord | undefined {
     return this.plugins.get(pluginId)
   }
 
-  _validateManifest(manifest) {
-    const required = ['id', 'name', 'version']
+  private _validateManifest(manifest: Partial<PluginManifest>): void {
+    const required: Array<keyof PluginManifest> = ['id', 'name', 'version']
     for (const field of required) {
       if (!manifest[field]) throw new Error(`manifest.json missing field: ${field}`)
     }
-    if (!/^[a-z0-9-]+$/.test(manifest.id)) {
+    if (!/^[a-z0-9-]+$/.test(manifest.id!)) {
       throw new Error('manifest.id must be lowercase alphanumeric with dashes')
     }
   }
 }
 
-module.exports = PluginManager
+export default PluginManager

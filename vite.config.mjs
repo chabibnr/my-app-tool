@@ -13,12 +13,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src/renderer'),
-      '@xterm/xterm': path.resolve(__dirname, 'plugins/ssh-terminal/node_modules/@xterm/xterm'),
-      '@xterm/addon-fit': path.resolve(__dirname, 'plugins/ssh-terminal/node_modules/@xterm/addon-fit'),
     },
   },
   build: {
     outDir: '../../dist/renderer',
     emptyOutDir: true,
+    rollupOptions: {
+      external: ['electron'], // Tell the bundler NOT to try and "solve" electron
+    },
   },
 })

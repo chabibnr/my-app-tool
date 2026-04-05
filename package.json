@@ -2,13 +2,18 @@
   "name": "electron-plugin-app",
   "version": "1.0.0",
   "description": "Electron app with plugin system + device communication",
-  "main": "src/main/main.js",
+  "main": "dist/main/main.js",
   "scripts": {
     "dev": "concurrently \"npm run dev:renderer\" \"npm run dev:electron\"",
     "dev:renderer": "vite --port 6173 --strictPort",
-    "dev:electron": "wait-on http://localhost:6173 && cross-env NODE_ENV=development electron .",
-    "build": "vite build && electron-builder",
-    "lint": "eslint src --ext .js,.jsx"
+    "dev:electron": "wait-on http://localhost:6173 && tsc --project tsconfig.json && cross-env NODE_ENV=development electron .",
+    "build": "npm run build:renderer && npm run build:main && electron-builder",
+    "build:renderer": "tsc --project tsconfig.renderer.json --noEmit && vite build",
+    "build:main": "tsc --project tsconfig.json",
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit && tsc --project tsconfig.renderer.json --noEmit",
+    "typecheck:main": "tsc --noEmit",
+    "typecheck:renderer": "tsc --project tsconfig.renderer.json --noEmit"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -27,11 +32,23 @@
     "serialport": "^12.0.0"
   },
   "devDependencies": {
+    "@types/node": "^25.5.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript-eslint/eslint-plugin": "^8.58.0",
+    "@typescript-eslint/parser": "^8.58.0",
     "@vitejs/plugin-react": "^4.0.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "concurrently": "^8.0.0",
     "cross-env": "^10.1.0",
     "electron": "^30.0.0",
     "electron-builder": "^24.0.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
     "vite": "^5.0.0",
     "wait-on": "^7.0.0"
   },
@@ -41,7 +58,7 @@
       "output": "dist/electron"
     },
     "files": [
-      "src/main/**",
+      "dist/main/**",
       "dist/renderer/**",
       "plugins/**"
     ],

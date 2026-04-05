@@ -8,18 +8,21 @@ import { useEffect, useCallback } from 'react'
  *   const ports = await call('serial:list')
  *   on('serial:data', (data) => console.log(data))
  */
-export function usePlugin(pluginId) {
+export function usePlugin(pluginId: string): {
+  call: (channel: string, data?: unknown) => Promise<unknown>
+  on: (channel: string, fn: (data: unknown) => void) => () => void
+} {
   const call = useCallback(
-    (channel, data) => window.electronAPI.pluginCall(pluginId, channel, data),
-    [pluginId]
+    (channel: string, data?: unknown) => window.electronAPI.pluginCall(pluginId, channel, data),
+    [pluginId],
   )
 
   const on = useCallback(
-    (channel, fn) => {
+    (channel: string, fn: (data: unknown) => void) => {
       const unsub = window.electronAPI.pluginOn(pluginId, channel, fn)
       return unsub
     },
-    [pluginId]
+    [pluginId],
   )
 
   return { call, on }
@@ -31,9 +34,13 @@ export function usePlugin(pluginId) {
  * Usage:
  *   usePluginEvent('my-serial-plugin', 'serial:data', (data) => setState(data))
  */
-export function usePluginEvent(pluginId, channel, fn) {
+export function usePluginEvent(
+  pluginId: string,
+  channel: string,
+  fn: (data: unknown) => void,
+): void {
   useEffect(() => {
     const unsub = window.electronAPI.pluginOn(pluginId, channel, fn)
     return unsub
-  }, [pluginId, channel])
+  }, [pluginId, channel, fn])
 }

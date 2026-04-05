@@ -6,14 +6,23 @@ import {
 } from 'lucide-react'
 import { usePluginStore } from '../stores/plugin-store'
 import { cn } from '../lib/utils'
+import type { Plugin, PluginError } from '../../types/global'
+
+type ActionState = 'reloading' | 'unloading'
+type ToastType = 'success' | 'error'
+
+interface Toast {
+  message: string
+  type: ToastType
+}
 
 export default function PluginsPage() {
   const { plugins, errors, loadPlugin, reloadPlugin, unloadPlugin } = usePluginStore()
   const [loading, setLoading] = useState(false)
-  const [actionStates, setActionStates] = useState({}) // { [pluginId]: 'reloading' | 'unloading' }
-  const [toast, setToast] = useState(null)
+  const [actionStates, setActionStates] = useState<Record<string, ActionState>>({})
+  const [toast, setToast] = useState<Toast | null>(null)
 
-  function showToast(message, type = 'success') {
+  function showToast(message: string, type: ToastType = 'success') {
     setToast({ message, type })
     setTimeout(() => setToast(null), 3000)
   }
@@ -26,31 +35,31 @@ export default function PluginsPage() {
       await loadPlugin(folder)
       showToast('Plugin loaded successfully')
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast((err as Error).message, 'error')
     } finally {
       setLoading(false)
     }
   }
 
-  async function handleReload(id) {
+  async function handleReload(id: string) {
     setActionStates(s => ({ ...s, [id]: 'reloading' }))
     try {
       await reloadPlugin(id)
       showToast(`${id} reloaded`)
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast((err as Error).message, 'error')
     } finally {
       setActionStates(s => { const n = { ...s }; delete n[id]; return n })
     }
   }
 
-  async function handleUnload(id) {
+  async function handleUnload(id: string) {
     setActionStates(s => ({ ...s, [id]: 'unloading' }))
     try {
       await unloadPlugin(id)
       showToast(`${id} unloaded`)
     } catch (err) {
-      showToast(err.message, 'error')
+      showToast((err as Error).message, 'error')
     } finally {
       setActionStates(s => { const n = { ...s }; delete n[id]; return n })
     }
@@ -137,7 +146,14 @@ export default function PluginsPage() {
   )
 }
 
-function PluginCard({ plugin, actionState, onReload, onUnload }) {
+interface PluginCardProps {
+  plugin: Plugin
+  actionState: ActionState | undefined
+  onReload: () => void
+  onUnload: () => void
+}
+
+function PluginCard({ plugin, actionState, onReload, onUnload }: PluginCardProps) {
   const [expanded, setExpanded] = useState(false)
   const busy = !!actionState
 
@@ -239,7 +255,7 @@ function PluginCard({ plugin, actionState, onReload, onUnload }) {
   )
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: { status: Plugin['status'] }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0',
@@ -256,13 +272,14 @@ function StatusBadge({ status }) {
   )
 }
 
-function PermissionBadge({ permission }) {
-  const map = {
-    serial: { icon: <Cpu className="size-3" />, label: 'Serial', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
-    hid: { icon: <Usb className="size-3" />, label: 'HID', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
-    storage: { icon: <HardDrive className="size-3" />, label: 'Storage', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-  }
-  const entry = map[permission] ?? { icon: <Package className="size-3" />, label: permission, color: 'text-muted-foreground bg-muted/40 border-border' }
+const PERMISSION_MAP: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
+  serial: { icon: <Cpu className="size-3" />, label: 'Serial', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+  hid: { icon: <Usb className="size-3" />, label: 'HID', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+  storage: { icon: <HardDrive className="size-3" />, label: 'Storage', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+}
+
+function PermissionBadge({ permission }: { permission: string }) {
+  const entry = PERMISSION_MAP[permission] ?? { icon: <Package className="size-3" />, label: permission, color: 'text-muted-foreground bg-muted/40 border-border' }
 
   return (
     <span className={cn('inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border font-medium', entry.color)}>
@@ -272,7 +289,14 @@ function PermissionBadge({ permission }) {
   )
 }
 
-function MetaRow({ icon, label, value, mono }) {
+interface MetaRowProps {
+  icon: React.ReactNode
+  label: string
+  value: string
+  mono?: boolean
+}
+
+function MetaRow({ icon, label, value, mono }: MetaRowProps) {
   return (
     <div className="flex items-start gap-1.5">
       <span className="text-muted-foreground/50 mt-0.5 shrink-0">{icon}</span>
@@ -284,7 +308,12 @@ function MetaRow({ icon, label, value, mono }) {
   )
 }
 
-function EmptyState({ onLoad, loading }) {
+interface EmptyStateProps {
+  onLoad: () => void
+  loading: boolean
+}
+
+function EmptyState({ onLoad, loading }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
       <div className="size-16 rounded-2xl bg-muted/30 flex items-center justify-center">
@@ -305,3 +334,6 @@ function EmptyState({ onLoad, loading }) {
     </div>
   )
 }
+
+// Needed for inline error display - re-export the PluginError type usage
+export type { PluginError }
