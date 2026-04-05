@@ -1,0 +1,10 @@
+{
+  "name": "ssh-terminal-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "ssh2": "^1.16.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0"
+  }
+}

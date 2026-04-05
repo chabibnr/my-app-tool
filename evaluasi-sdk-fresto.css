@@ -1,0 +1,666 @@
+/*
+ * evaluasi-sdk-dashboard-theme.css
+ *
+ * Override/extension untuk evaluasi-sdk.css
+ * Menyesuaikan nilai CSS variables dan class attributes
+ * agar tampilannya matching dengan desain dashboard LMS (screenshot).
+ *
+ * Import SETELAH evaluasi-sdk.css:
+ *   <link rel="stylesheet" href="evaluasi-sdk.css">
+ *   <link rel="stylesheet" href="evaluasi-sdk-dashboard-theme.css">
+ */
+
+/* ─────────────────────────────────────────────────────────────
+   1. TOKEN OVERRIDE
+   Mendefinisikan ulang CSS variables di root selector [class*=evl-sdk-]
+   agar semua komponen sdk langsung memakai nilai baru ini.
+───────────────────────────────────────────────────────────── */
+
+[class*=evl-sdk-] {
+  /* Font – Plus Jakarta Sans sesuai dashboard */
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Background */
+  --evl-bg:        #ffffff;       /* card / surface utama */
+  --evl-bg-subtle: #f8fafc;       /* background halaman, row zebra */
+  --evl-bg-muted:  #f1f5f9;       /* chip, badge grey, hover ringan */
+
+  /* Border */
+  --evl-border:    #e2e8f0;       /* border card & input normal */
+  --evl-border-l:  #f1f5f9;       /* border sangat tipis / separator */
+
+  /* Text */
+  --evl-text:      #0f172a;       /* teks utama / heading gelap */
+  --evl-text-dk:   #1e293b;       /* heading lebih gelap */
+  --evl-text-md:   #334155;       /* body text */
+  --evl-text-sec:  #475569;       /* label, meta sekunder */
+  --evl-muted:     #64748b;       /* placeholder, caption */
+  --evl-faint:     #94a3b8;       /* icon pasif, hint */
+  --evl-faintest:  #cbd5e1;       /* divider, disabled */
+
+  /* Accent – Biru sesuai tombol "Edit Profil" di screenshot */
+  --evl-blue:      #2563eb;
+  --evl-blue-dk:   #1d4ed8;
+
+  /* Status */
+  --evl-green:     #16a34a;
+  --evl-amber:     #d97706;
+  --evl-red:       #dc2626;
+
+  /* Border radius */
+  --evl-r-sm:  6px;
+  --evl-r-md:  8px;
+  --evl-r-lg:  10px;
+  --evl-r-xl:  14px;               /* card utama lebih rounded */
+  --evl-r-full: 999px;
+
+  /* Transition speed */
+  --evl-t: .15s;
+
+  /* Shadow – dipakai di card & modal */
+  --evl-shadow-sm:  0 1px 3px 0 rgb(0 0 0 / .07), 0 1px 2px -1px rgb(0 0 0 / .07);
+  --evl-shadow-md:  0 4px 12px 0 rgb(0 0 0 / .08), 0 2px 4px -2px rgb(0 0 0 / .06);
+  --evl-shadow-lg:  0 10px 24px -3px rgb(0 0 0 / .10), 0 4px 8px -4px rgb(0 0 0 / .06);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   2. WIDGET – root container
+───────────────────────────────────────────────────────────── */
+
+/* Base widget: font & warna sudah di-override via token di atas */
+.evl-sdk-widget {
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--evl-text);
+  background: var(--evl-bg-subtle);    /* page background abu sangat muda */
+  border-radius: var(--evl-r-xl);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   3. SURFACE & CARD – matching card putih berbordir screenshot
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-surface {
+  background:    var(--evl-bg);
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-xl);          /* lebih rounded dari default */
+  box-shadow:    var(--evl-shadow-sm);
+}
+
+.evl-sdk-surface-subtle {
+  background:    var(--evl-bg-subtle);
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-xl);
+  box-shadow:    none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   4. HEADER WIDGET – breadcrumb + judul halaman
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-header {
+  background:    var(--evl-bg);
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-xl);
+  padding:       1.25rem 1.5rem;
+  box-shadow:    var(--evl-shadow-sm);
+}
+
+.evl-sdk-header-title {
+  font-size:   20px;
+  font-weight: 700;
+  color:       var(--evl-text-dk);
+  letter-spacing: -0.3px;
+  margin: 0;
+}
+
+.evl-sdk-header-desc {
+  font-size: 13px;
+  color:     var(--evl-muted);
+  margin:    4px 0 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   5. LABEL CAPS – section label seperti "DATA SEKOLAH"
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-label-caps {
+  font-size:      11px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color:          var(--evl-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   6. TABS – matching tab "Overview / Per Jenjang / Demografi"
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-tabs {
+  display:       flex;
+  border-bottom: 1px solid var(--evl-border);
+  margin-top:    0;               /* dalam card sudah ada padding */
+  gap:           2px;
+}
+
+.evl-sdk-tab {
+  padding:         10px 18px;
+  font-size:       13px;
+  font-weight:     500;
+  color:           var(--evl-muted);
+  border:          none;
+  border-bottom:   2px solid transparent;
+  margin-bottom:   -1px;
+  cursor:          pointer;
+  background:      transparent;
+  border-radius:   0;
+  transition:      color var(--evl-t), border-color var(--evl-t);
+  white-space:     nowrap;
+}
+
+.evl-sdk-tab:hover {
+  color: var(--evl-text-dk);
+}
+
+.evl-sdk-tab-active {
+  color:            var(--evl-blue);
+  border-bottom-color: var(--evl-blue);
+  font-weight:      600;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   7. BADGE – status pill sesuai "SUPER ADMIN" badge biru
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           4px;
+  border-radius: var(--evl-r-full);
+  border:        1px solid transparent;
+  padding:       3px 12px;
+  font-size:     11px;
+  font-weight:   700;
+  letter-spacing: .04em;
+  line-height:   18px;
+}
+
+.evl-sdk-badge-blue {
+  background:   #eff6ff;
+  color:        var(--evl-blue);
+  border-color: #bfdbfe;
+}
+
+.evl-sdk-badge-green {
+  background:   #f0fdf4;
+  color:        var(--evl-green);
+  border-color: #bbf7d0;
+}
+
+.evl-sdk-badge-amber {
+  background:   #fffbeb;
+  color:        var(--evl-amber);
+  border-color: #fde68a;
+}
+
+.evl-sdk-badge-grey {
+  background:   var(--evl-bg-muted);
+  color:        var(--evl-muted);
+  border-color: var(--evl-border);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   8. PCARD – kartu statistik (Guru & Pegawai / Rombel / Siswa)
+   Memakai class evl-sdk-pcard yang sudah ada, di-override shadow & radius
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-pcard {
+  background:    var(--evl-bg);
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-xl);
+  padding:       16px 18px;
+  box-shadow:    var(--evl-shadow-sm);
+  transition:    box-shadow var(--evl-t), border-color var(--evl-t), transform var(--evl-t);
+  cursor:        default;
+}
+
+.evl-sdk-pcard:hover {
+  border-color: #bfdbfe;
+  box-shadow:   0 4px 16px #2563eb18;
+  transform:    translateY(-1px);
+}
+
+/* Avatar warna – cocok untuk ikon statistik */
+.evl-sdk-pcard-avatar {
+  width:         40px;
+  height:        40px;
+  border-radius: var(--evl-r-lg);   /* persegi rounded, bukan bulat */
+  font-size:     18px;
+  font-weight:   700;
+  flex-shrink:   0;
+}
+
+.evl-sdk-pcard-avatar-blue  { background: #dbeafe; color: #1d4ed8; }
+.evl-sdk-pcard-avatar-green { background: #dcfce7; color: #15803d; }
+.evl-sdk-pcard-avatar-teal  { background: #ccfbf1; color: #0f766e; }
+
+.evl-sdk-pcard-name {
+  font-size:   22px;
+  font-weight: 800;
+  color:       var(--evl-text-dk);
+  letter-spacing: -0.5px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   9. GRID UTILITIES TAMBAHAN
+───────────────────────────────────────────────────────────── */
+
+/* Grid 3 kolom – untuk statistik Data Sekolah */
+.evl-sdk-grid-3 {
+  display:               grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap:                   12px;
+}
+
+/* Grid 2 kolom dengan min-width — profil kiri + data kanan */
+.evl-sdk-grid-profile {
+  display:               grid;
+  grid-template-columns: 280px 1fr;
+  gap:                   20px;
+  align-items:           start;
+}
+
+@media (max-width: 768px) {
+  .evl-sdk-grid-profile { grid-template-columns: 1fr; }
+  .evl-sdk-grid-3       { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   10. ICON BTN – tombol aksi kecil (edit, kembali)
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-icon-btn {
+  width:         32px;
+  height:        32px;
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-md);
+  background:    var(--evl-bg);
+  cursor:        pointer;
+  color:         var(--evl-muted);
+  font-size:     14px;
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  padding:       0;
+  transition:    background var(--evl-t), border-color var(--evl-t), color var(--evl-t);
+  box-shadow:    var(--evl-shadow-sm);
+}
+
+.evl-sdk-icon-btn:hover {
+  background:    var(--evl-bg-muted);
+  border-color:  var(--evl-faintest);
+  color:         var(--evl-text-sec);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   11. DIVIDER
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-divider {
+  height:     1px;
+  background: var(--evl-border);
+  border:     none;
+  margin:     0;
+}
+
+.evl-sdk-divider-l {
+  height:     1px;
+  background: var(--evl-border-l);
+  border:     none;
+  margin:     0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   12. FORM ELEMENTS – input, select matching dashboard style
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-form-input {
+  display:       block;
+  width:         100%;
+  padding:       8px 12px;
+  font-size:     13px;
+  font-family:   inherit;
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-md);
+  background:    var(--evl-bg);
+  color:         var(--evl-text-md);
+  outline:       none;
+  transition:    border-color var(--evl-t), box-shadow var(--evl-t);
+  line-height:   1.5;
+}
+
+.evl-sdk-form-input:focus {
+  border-color: var(--evl-blue);
+  box-shadow:   0 0 0 3px #2563eb18;
+}
+
+.evl-sdk-form-input::placeholder {
+  color: var(--evl-faintest);
+}
+
+.evl-sdk-form-select {
+  display:       block;
+  width:         100%;
+  padding:       8px 12px;
+  font-size:     13px;
+  font-family:   inherit;
+  border:        1px solid var(--evl-border);
+  border-radius: var(--evl-r-md);
+  background:    var(--evl-bg);
+  color:         var(--evl-text-md);
+  cursor:        pointer;
+  outline:       none;
+  transition:    border-color var(--evl-t);
+}
+
+.evl-sdk-form-select:focus {
+  border-color: var(--evl-blue);
+}
+
+.evl-sdk-form-label {
+  font-size:   12px;
+  font-weight: 600;
+  color:       var(--evl-text-sec);
+  margin-bottom: 5px;
+  display:     block;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   13. QUESTION ITEM – list item dengan hover state smooth
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-question-item {
+  border:        1px solid var(--evl-border-l);
+  border-radius: var(--evl-r-lg);
+  background:    var(--evl-bg);
+  transition:    background var(--evl-t), border-color var(--evl-t), box-shadow var(--evl-t);
+}
+
+.evl-sdk-question-item:hover {
+  background:    var(--evl-bg-subtle);
+  border-color:  var(--evl-border);
+  box-shadow:    var(--evl-shadow-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   14. MODAL – rounded lebih besar, shadow lebih dramatis
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-modal {
+  background:    var(--evl-bg);
+  border-radius: var(--evl-r-xl);
+  box-shadow:    var(--evl-shadow-lg);
+  border:        1px solid var(--evl-border);
+}
+
+.evl-sdk-modal-hd {
+  padding:       1.25rem 1.5rem;
+  border-bottom: 1px solid var(--evl-border);
+  display:       flex;
+  align-items:   center;
+  justify-content: space-between;
+  gap:           12px;
+}
+
+.evl-sdk-modal-title {
+  font-size:   15px;
+  font-weight: 700;
+  color:       var(--evl-text-dk);
+  margin:      0;
+}
+
+.evl-sdk-modal-body {
+  padding: 1.25rem 1.5rem;
+}
+
+.evl-sdk-modal-ft {
+  padding:    1rem 1.5rem;
+  border-top: 1px solid var(--evl-border);
+  display:    flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap:        8px;
+}
+
+/* Backdrop */
+.evl-sdk-modal-backdrop {
+  background: rgb(15 23 42 / .45);
+  backdrop-filter: blur(2px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15. SPINNER / LOADING STATE
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-spinner {
+  width:            22px;
+  height:           22px;
+  border:           2.5px solid var(--evl-border);
+  border-top-color: var(--evl-blue);
+  border-radius:    50%;
+  animation:        evl-sdk-spin .7s linear infinite;
+  flex-shrink:      0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   16. TYPOGRAPHY SCALE – sesuai dashboard screenshot
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-text-xs   { font-size: 10px; }
+.evl-sdk-text-sm   { font-size: 11px; }
+.evl-sdk-text-md   { font-size: 12px; }
+.evl-sdk-text-base { font-size: 13px; }
+.evl-sdk-text-lg   { font-size: 14px; }
+.evl-sdk-text-xl   { font-size: 16px; font-weight: 600; }
+.evl-sdk-text-2xl  { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+
+.evl-sdk-fw-500 { font-weight: 500; }
+.evl-sdk-fw-600 { font-weight: 600; }
+.evl-sdk-fw-700 { font-weight: 700; }
+.evl-sdk-fw-800 { font-weight: 800; letter-spacing: -0.5px; }
+
+/* ─────────────────────────────────────────────────────────────
+   17. STATUS DOT – titik hijau "Aktif" seperti di screenshot
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-status-dot {
+  display:       inline-block;
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  flex-shrink:   0;
+}
+
+.evl-sdk-status-dot-green  { background: var(--evl-green);  box-shadow: 0 0 0 2px #dcfce7; }
+.evl-sdk-status-dot-amber  { background: var(--evl-amber);  box-shadow: 0 0 0 2px #fef9c3; }
+.evl-sdk-status-dot-red    { background: var(--evl-red);    box-shadow: 0 0 0 2px #fee2e2; }
+.evl-sdk-status-dot-muted  { background: var(--evl-faint);  box-shadow: 0 0 0 2px var(--evl-bg-muted); }
+
+/* ─────────────────────────────────────────────────────────────
+   18. PROFILE COVER – banner gradient di atas kartu profil
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-profile-cover {
+  height:           90px;
+  border-radius:    var(--evl-r-xl) var(--evl-r-xl) 0 0;
+  background:       linear-gradient(135deg, #6366f1 0%, #2563eb 50%, #0ea5e9 100%);
+  flex-shrink:      0;
+}
+
+/* Avatar besar di bawah cover */
+.evl-sdk-profile-avatar {
+  width:         72px;
+  height:        72px;
+  border-radius: 50%;
+  border:        3px solid var(--evl-bg);
+  background:    var(--evl-bg-muted);
+  display:       flex;
+  align-items:   center;
+  justify-content: center;
+  font-size:     28px;
+  font-weight:   800;
+  color:         var(--evl-text-sec);
+  box-shadow:    0 2px 8px rgb(0 0 0 / .12);
+  position:      relative;
+  flex-shrink:   0;
+}
+
+/* Titik online di pojok avatar */
+.evl-sdk-profile-avatar-dot {
+  position:      absolute;
+  bottom:        3px;
+  right:         3px;
+  width:         12px;
+  height:        12px;
+  border-radius: 50%;
+  background:    var(--evl-green);
+  border:        2px solid var(--evl-bg);
+}
+
+/* Stat row kecil: 78 Guru · 29 Kelas · 949 Siswa */
+.evl-sdk-profile-stats {
+  display:        flex;
+  align-items:    center;
+  gap:            0;
+  border:         1px solid var(--evl-border);
+  border-radius:  var(--evl-r-lg);
+  overflow:       hidden;
+  background:     var(--evl-bg);
+  width:          100%;
+}
+
+.evl-sdk-profile-stat {
+  flex:           1;
+  text-align:     center;
+  padding:        10px 8px;
+  border-right:   1px solid var(--evl-border);
+}
+
+.evl-sdk-profile-stat:last-child {
+  border-right: none;
+}
+
+.evl-sdk-profile-stat-val {
+  font-size:   18px;
+  font-weight: 800;
+  color:       var(--evl-text-dk);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  display:     block;
+}
+
+.evl-sdk-profile-stat-label {
+  font-size:  10px;
+  color:      var(--evl-muted);
+  margin-top: 2px;
+  display:    block;
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   19. INFO GRID – label + value dua kolom (Informasi Pribadi)
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-info-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   16px 24px;
+}
+
+@media (max-width: 480px) {
+  .evl-sdk-info-grid { grid-template-columns: 1fr; }
+}
+
+.evl-sdk-info-item {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+
+.evl-sdk-info-label {
+  font-size:      11px;
+  font-weight:    600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color:          var(--evl-faint);
+}
+
+.evl-sdk-info-value {
+  font-size:   13px;
+  font-weight: 600;
+  color:       var(--evl-text-md);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   20. ACTION LIST BUTTONS – Edit Data Profil / Kelola Akun / Kembali
+───────────────────────────────────────────────────────────── */
+
+.evl-sdk-action-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            8px;
+  width:          100%;
+}
+
+.evl-sdk-action-btn {
+  display:         flex;
+  align-items:     center;
+  gap:             8px;
+  width:           100%;
+  padding:         10px 14px;
+  font-size:       13px;
+  font-weight:     600;
+  font-family:     inherit;
+  border:          1px solid var(--evl-border);
+  border-radius:   var(--evl-r-lg);
+  background:      var(--evl-bg);
+  color:           var(--evl-text-sec);
+  cursor:          pointer;
+  text-align:      left;
+  text-decoration: none;
+  transition:      background var(--evl-t), border-color var(--evl-t), color var(--evl-t);
+}
+
+.evl-sdk-action-btn:hover {
+  background:   var(--evl-bg-muted);
+  border-color: var(--evl-faintest);
+  color:        var(--evl-text-dk);
+}
+
+.evl-sdk-action-btn-primary {
+  background:   #eff6ff;
+  color:        var(--evl-blue);
+  border-color: #bfdbfe;
+}
+
+.evl-sdk-action-btn-primary:hover {
+  background:   #dbeafe;
+  border-color: #93c5fd;
+}
+
+.evl-sdk-action-btn-amber {
+  background:   #fffbeb;
+  color:        var(--evl-amber);
+  border-color: #fde68a;
+}
+
+.evl-sdk-action-btn-amber:hover {
+  background:   #fef3c7;
+  border-color: #fbbf24;
+}
+
+.evl-sdk-action-btn-icon {
+  font-size:  16px;
+  flex-shrink: 0;
+}

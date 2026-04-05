@@ -1,0 +1,13 @@
+{
+  "id": "serial-monitor",
+  "name": "Serial Monitor",
+  "version": "1.0.0",
+  "description": "Monitor and send data via serial port",
+  "main": "main.js",
+  "permissions": ["serial", "storage"],
+  "panel": {
+    "title": "Serial Monitor",
+    "icon": "terminal",
+    "position": "sidebar"
+  }
+}

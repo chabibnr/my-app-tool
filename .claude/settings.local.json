@@ -1,0 +1,16 @@
+{
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:1234",
+    "ANTHROPIC_AUTH_TOKEN": "lmstudio",
+    "ANTHROPIC_API_KEY": ""
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "WebFetch(domain:reui.io)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(npm uninstall:*)"
+    ]
+  }
+}

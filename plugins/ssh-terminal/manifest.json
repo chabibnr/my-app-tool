@@ -1,0 +1,13 @@
+{
+  "id": "ssh-terminal",
+  "name": "SSH Terminal",
+  "version": "1.0.0",
+  "description": "Multi-session SSH terminal with password and private key auth",
+  "main": "main.js",
+  "permissions": [],
+  "panel": {
+    "title": "SSH Terminal",
+    "icon": "terminal",
+    "position": "sidebar"
+  }
+}

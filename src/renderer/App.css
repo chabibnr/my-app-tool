@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: hsl(224 71% 4%);
+  --color-foreground: hsl(213 31% 91%);
+
+  --color-muted: hsl(223 47% 11%);
+  --color-muted-foreground: hsl(215.4 16.3% 56.9%);
+
+  --color-border: hsl(216 34% 17%);
+
+  --color-primary: hsl(210 40% 98%);
+  --color-primary-foreground: hsl(222.2 47.4% 1.2%);
+
+  --color-secondary: hsl(222.2 47.4% 11.2%);
+  --color-secondary-foreground: hsl(210 40% 98%);
+
+  --color-accent: hsl(216 34% 17%);
+  --color-accent-foreground: hsl(210 40% 98%);
+
+  --color-destructive: hsl(0 63% 31%);
+  --color-destructive-foreground: hsl(210 40% 98%);
+
+  --color-sidebar: hsl(222 47% 7%);
+  --color-sidebar-border: hsl(216 34% 14%);
+  --color-sidebar-active: hsl(217 32% 17%);
+
+  --color-titlebar: hsl(224 71% 3%);
+  --color-titlebar-border: hsl(216 34% 12%);
+
+  --radius: 0.5rem;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+.drag-region {
+  -webkit-app-region: drag;
+}
+.no-drag {
+  -webkit-app-region: no-drag;
+}
