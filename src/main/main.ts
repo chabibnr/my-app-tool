@@ -1,15 +1,14 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray } = require('electron')
-const path = require('path')
-const PluginManager = require('./plugin-manager')
-const CoreAPI = require('./core-api')
-const { setupIPC } = require('./ipc-handlers')
+import { app, BrowserWindow, ipcMain } from 'electron'
+import * as path from 'path'
+import PluginManager from './plugin-manager'
+import CoreAPI from './core-api'
+import { setupIPC } from './ipc-handlers'
 
-let mainWindow
-let tray
-let pluginManager
-let coreAPI
+let mainWindow: BrowserWindow | undefined
+let pluginManager: InstanceType<typeof PluginManager>
+let coreAPI: InstanceType<typeof CoreAPI>
 
-async function createWindow() {
+async function createWindow(): Promise<void> {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -27,17 +26,17 @@ async function createWindow() {
   })
 
   // Window control IPC
-  ipcMain.on('window:minimize', () => mainWindow.minimize())
+  ipcMain.on('window:minimize', () => mainWindow!.minimize())
   ipcMain.on('window:maximize', () => {
-    if (mainWindow.isMaximized()) mainWindow.restore()
-    else mainWindow.maximize()
+    if (mainWindow!.isMaximized()) mainWindow!.restore()
+    else mainWindow!.maximize()
   })
-  ipcMain.on('window:close', () => mainWindow.close())
+  ipcMain.on('window:close', () => mainWindow!.close())
 
-  mainWindow.on('maximize', () => mainWindow.webContents.send('window:maximized', true))
-  mainWindow.on('unmaximize', () => mainWindow.webContents.send('window:maximized', false))
+  mainWindow.on('maximize', () => mainWindow!.webContents.send('window:maximized', true))
+  mainWindow.on('unmaximize', () => mainWindow!.webContents.send('window:maximized', false))
 
-  mainWindow.once('ready-to-show', () => mainWindow.show())
+  mainWindow.once('ready-to-show', () => mainWindow!.show())
 
   if (process.env.NODE_ENV === 'development') {
     mainWindow.loadURL('http://localhost:6173')
@@ -47,7 +46,7 @@ async function createWindow() {
   }
 }
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   await app.whenReady()
 
   coreAPI = new CoreAPI({ mainWindow: () => mainWindow })
@@ -59,7 +58,7 @@ async function bootstrap() {
   await pluginManager.loadAll()
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    if (BrowserWindow.getAllWindows().length === 0) void createWindow()
   })
 }
 
@@ -67,8 +66,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
 })
 
-app.on('before-quit', async () => {
-  await pluginManager.unloadAll()
+app.on('before-quit', () => {
+  void pluginManager.unloadAll()
 })
 
-bootstrap().catch(console.error)
+void bootstrap()

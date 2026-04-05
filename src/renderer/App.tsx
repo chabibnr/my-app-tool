@@ -4,14 +4,16 @@ import {
   Terminal, Settings, Monitor, Radio, ClipboardList, BarChart2, Zap,
   AlertCircle, Puzzle,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { usePluginStore } from './stores/plugin-store'
 import Titlebar from './components/Titlebar'
 import PluginsPage from './pages/PluginsPage'
 import SshTerminalPage from './pages/SshTerminalPage'
 import { cn } from './lib/utils'
+import type { Plugin, PanelDefinition } from '../types/global'
 
 // Map pluginId → renderer component
-const PLUGIN_PAGES = {
+const PLUGIN_PAGES: Record<string, React.ComponentType> = {
   'ssh-terminal': SshTerminalPage,
 }
 
@@ -22,12 +24,11 @@ const CORE_PAGES = [
 
 export default function App() {
   const { plugins, panels, errors, fetchPlugins, reloadPlugin, unloadPlugin, init } = usePluginStore()
-  // activePage: 'plugins' | panel pluginId
   const [activePage, setActivePage] = useState('plugins')
 
   useEffect(() => {
     init()
-    fetchPlugins()
+    void fetchPlugins()
   }, [])
 
   const activePanel = panels.find(p => p.pluginId === activePage) ?? null
@@ -126,7 +127,14 @@ export default function App() {
   )
 }
 
-function NavItem({ icon: Icon, label, active, onClick }) {
+interface NavItemProps {
+  icon: LucideIcon | undefined
+  label: string
+  active: boolean
+  onClick: () => void
+}
+
+function NavItem({ icon: Icon, label, active, onClick }: NavItemProps) {
   return (
     <button
       onClick={onClick}
@@ -143,7 +151,13 @@ function NavItem({ icon: Icon, label, active, onClick }) {
   )
 }
 
-function PluginList({ plugins, onReload, onUnload }) {
+interface PluginListProps {
+  plugins: Plugin[]
+  onReload: (id: string) => Promise<void>
+  onUnload: (id: string) => Promise<void>
+}
+
+function PluginList({ plugins, onReload, onUnload }: PluginListProps) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -171,14 +185,14 @@ function PluginList({ plugins, onReload, onUnload }) {
               </span>
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() => onReload(p.id)}
+                  onClick={() => void onReload(p.id)}
                   className="p-1 rounded hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                   title="Reload"
                 >
                   <RefreshCw className="size-3" />
                 </button>
                 <button
-                  onClick={() => onUnload(p.id)}
+                  onClick={() => void onUnload(p.id)}
                   className="p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-muted-foreground transition-colors"
                   title="Unload"
                 >
@@ -196,7 +210,7 @@ function PluginList({ plugins, onReload, onUnload }) {
   )
 }
 
-const ICON_MAP = {
+const ICON_MAP: Record<string, LucideIcon | undefined> = {
   terminal: Terminal,
   settings: Settings,
   monitor: Monitor,
@@ -204,3 +218,6 @@ const ICON_MAP = {
   log: ClipboardList,
   chart: BarChart2,
 }
+
+// Needed for panel type reference
+export type { PanelDefinition }

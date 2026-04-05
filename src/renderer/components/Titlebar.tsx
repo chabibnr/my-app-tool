@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Minus, Square, X, Maximize2 } from 'lucide-react'
+import { Minus, Maximize2, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export default function Titlebar({ title = 'Plugin App' }) {
+interface TitlebarProps {
+  title?: string
+}
+
+export default function Titlebar({ title = 'Plugin App' }: TitlebarProps) {
   const [isMaximized, setIsMaximized] = useState(false)
 
   useEffect(() => {
@@ -56,7 +60,14 @@ export default function Titlebar({ title = 'Plugin App' }) {
   )
 }
 
-function WinButton({ children, onClick, label, variant }) {
+interface WinButtonProps {
+  children: React.ReactNode
+  onClick: () => void
+  label: string
+  variant?: 'close' | 'default'
+}
+
+function WinButton({ children, onClick, label, variant }: WinButtonProps) {
   return (
     <button
       onClick={onClick}

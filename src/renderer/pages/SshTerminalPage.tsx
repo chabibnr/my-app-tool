@@ -4,7 +4,7 @@ import { FitAddon } from '@xterm/addon-fit'
 import '@xterm/xterm/css/xterm.css'
 import {
   Plus, X, Loader2, AlertCircle, Terminal as TerminalIcon,
-  Key, Lock, Server, User, Hash, History, Trash2, Clock,
+  Key, Lock, Server, User, Hash, History, Clock,
 } from 'lucide-react'
 import { usePlugin } from '../hooks/use-plugin'
 import { cn } from '../lib/utils'
@@ -12,33 +12,70 @@ import { cn } from '../lib/utils'
 const PLUGIN_ID = 'ssh-terminal'
 
 let sessionCounter = 0
-function newSessionId() {
+function newSessionId(): string {
   return `session-${++sessionCounter}-${Date.now()}`
+}
+
+type SessionStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
+
+interface Session {
+  id: string
+  label: string
+  host: string
+  username: string
+  status: SessionStatus
+  error?: string
+}
+
+interface TerminalInstance {
+  terminal: Terminal
+  fitAddon: FitAddon
+}
+
+type AuthType = 'password' | 'key'
+
+interface ConnectFormData {
+  host: string
+  port: string
+  username: string
+  authType: AuthType
+  password: string
+  keyPath: string
+}
+
+interface HistoryItem {
+  id: string
+  host: string
+  port: number
+  username: string
+  authType: AuthType
+  keyPath?: string
+  label: string
+  lastUsed: number
 }
 
 export default function SshTerminalPage() {
   const { call, on } = usePlugin(PLUGIN_ID)
-  const [sessions, setSessions] = useState([])       // [{ id, label, status, host, username }]
-  const [activeId, setActiveId] = useState(null)
+  const [sessions, setSessions] = useState<Session[]>([])
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
 
-  // xterm instances: { [sessionId]: { terminal, fitAddon } }
-  const instances = useRef({})
-  // DOM container refs per session: { [sessionId]: HTMLDivElement }
-  const containerRefs = useRef({})
+  const instances = useRef<Record<string, TerminalInstance>>({})
+  const containerRefs = useRef<Record<string, HTMLDivElement>>({})
 
-  // Subscribe to plugin events once
   useEffect(() => {
-    const unsubData = on('data', ({ sessionId, data }) => {
+    const unsubData = on('data', (raw) => {
+      const { sessionId, data } = raw as { sessionId: string; data: string }
       const inst = instances.current[sessionId]
       if (inst) {
         inst.terminal.write(Uint8Array.from(atob(data), c => c.charCodeAt(0)))
       }
     })
 
-    const unsubClosed = on('session-closed', ({ sessionId }) => {
+    const unsubClosed = on('session-closed', (raw) => {
+      const { sessionId } = raw as { sessionId: string }
       setSessions(s => s.map(sess =>
-        sess.id === sessionId ? { ...sess, status: 'disconnected' } : sess
+        sess.id === sessionId ? { ...sess, status: 'disconnected' } : sess,
       ))
     })
 
@@ -48,8 +85,7 @@ export default function SshTerminalPage() {
     }
   }, [on])
 
-  // Attach a new xterm instance to the container for a given session
-  const initTerminal = useCallback((sessionId, element) => {
+  const initTerminal = useCallback((sessionId: string, element: HTMLDivElement) => {
     if (!element || instances.current[sessionId]) return
 
     const terminal = new Terminal({
@@ -88,8 +124,7 @@ export default function SshTerminalPage() {
     terminal.open(element)
     fitAddon.fit()
 
-    // Send keystrokes to the plugin
-    terminal.onData((data) => {
+    terminal.onData((data: string) => {
       call('send', {
         sessionId,
         data: btoa(data),
@@ -104,7 +139,6 @@ export default function SshTerminalPage() {
     }
   }, [call])
 
-  // Re-fit active terminal on resize
   useEffect(() => {
     if (!activeId) return
     const inst = instances.current[activeId]
@@ -121,7 +155,7 @@ export default function SshTerminalPage() {
     return () => observer.disconnect()
   }, [activeId, call])
 
-  async function handleConnect(formData) {
+  async function handleConnect(formData: ConnectFormData) {
     const sessionId = newSessionId()
     const label = `${formData.username}@${formData.host}`
 
@@ -145,16 +179,16 @@ export default function SshTerminalPage() {
         privateKeyPath: formData.authType === 'key' ? formData.keyPath : undefined,
       })
       setSessions(s => s.map(sess =>
-        sess.id === sessionId ? { ...sess, status: 'connected' } : sess
+        sess.id === sessionId ? { ...sess, status: 'connected' } : sess,
       ))
     } catch (err) {
       setSessions(s => s.map(sess =>
-        sess.id === sessionId ? { ...sess, status: 'error', error: err.message } : sess
+        sess.id === sessionId ? { ...sess, status: 'error', error: (err as Error).message } : sess,
       ))
     }
   }
 
-  function handleCloseSession(sessionId) {
+  function handleCloseSession(sessionId: string) {
     call('disconnect', { sessionId }).catch(() => {})
     const inst = instances.current[sessionId]
     if (inst) {
@@ -195,7 +229,6 @@ export default function SshTerminalPage() {
 
       {/* Content */}
       <div className="flex-1 relative overflow-hidden">
-        {/* Empty state */}
         {sessions.length === 0 && !showForm && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <div className="size-16 rounded-2xl bg-white/5 flex items-center justify-center">
@@ -215,7 +248,6 @@ export default function SshTerminalPage() {
           </div>
         )}
 
-        {/* Terminal panes — all mounted, only active visible */}
         {sessions.map(sess => (
           <TerminalPane
             key={sess.id}
@@ -226,7 +258,6 @@ export default function SshTerminalPage() {
           />
         ))}
 
-        {/* Connection form overlay */}
         {showForm && (
           <ConnectForm
             call={call}
@@ -251,7 +282,14 @@ export default function SshTerminalPage() {
   )
 }
 
-function Tab({ session, active, onClick, onClose }) {
+interface TabProps {
+  session: Session
+  active: boolean
+  onClick: () => void
+  onClose: () => void
+}
+
+function Tab({ session, active, onClick, onClose }: TabProps) {
   return (
     <button
       onClick={onClick}
@@ -274,8 +312,15 @@ function Tab({ session, active, onClick, onClose }) {
   )
 }
 
-function TerminalPane({ session, active, containerRefs, onInit }) {
-  const divRef = useCallback((el) => {
+interface TerminalPaneProps {
+  session: Session
+  active: boolean
+  containerRefs: React.MutableRefObject<Record<string, HTMLDivElement>>
+  onInit: (sessionId: string, element: HTMLDivElement) => (() => void) | undefined
+}
+
+function TerminalPane({ session, active, containerRefs, onInit }: TerminalPaneProps) {
+  const divRef = useCallback((el: HTMLDivElement | null) => {
     if (!el) return
     containerRefs.current[session.id] = el
     onInit(session.id, el)
@@ -285,7 +330,6 @@ function TerminalPane({ session, active, containerRefs, onInit }) {
     <div
       className={cn('absolute inset-0 flex flex-col', !active && 'invisible pointer-events-none')}
     >
-      {/* Error banner */}
       {session.status === 'error' && (
         <div className="flex items-center gap-2 px-4 py-2 bg-red-500/10 border-b border-red-500/20 text-red-400 text-xs shrink-0">
           <AlertCircle className="size-3.5 shrink-0" />
@@ -293,7 +337,6 @@ function TerminalPane({ session, active, containerRefs, onInit }) {
         </div>
       )}
 
-      {/* Connecting overlay */}
       {session.status === 'connecting' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0d0d14] z-10">
           <Loader2 className="size-6 text-blue-400 animate-spin" />
@@ -301,13 +344,12 @@ function TerminalPane({ session, active, containerRefs, onInit }) {
         </div>
       )}
 
-      {/* xterm container */}
       <div ref={divRef} className="flex-1 overflow-hidden p-1" />
     </div>
   )
 }
 
-function StatusDot({ status }) {
+function StatusDot({ status }: { status: SessionStatus }) {
   return (
     <span className={cn(
       'size-1.5 rounded-full shrink-0',
@@ -319,24 +361,30 @@ function StatusDot({ status }) {
   )
 }
 
-function ConnectForm({ call, onConnect, onCancel }) {
-  const [form, setForm] = useState({
+interface ConnectFormProps {
+  call: (channel: string, data?: unknown) => Promise<unknown>
+  onConnect: (formData: ConnectFormData) => Promise<void>
+  onCancel: () => void
+}
+
+function ConnectForm({ call, onConnect, onCancel }: ConnectFormProps) {
+  const [form, setForm] = useState<ConnectFormData>({
     host: '', port: '22', username: '',
     authType: 'password', password: '', keyPath: '',
   })
   const [connecting, setConnecting] = useState(false)
-  const [error, setError] = useState(null)
-  const [history, setHistory] = useState([])
+  const [error, setError] = useState<string | null>(null)
+  const [history, setHistory] = useState<HistoryItem[]>([])
 
   useEffect(() => {
-    call('get-history').then(setHistory).catch(() => {})
+    call('get-history').then(h => setHistory(h as HistoryItem[])).catch(() => {})
   }, [call])
 
-  function setField(field, value) {
+  function setField<K extends keyof ConnectFormData>(field: K, value: ConnectFormData[K]) {
     setForm(f => ({ ...f, [field]: value }))
   }
 
-  function applyHistory(item) {
+  function applyHistory(item: HistoryItem) {
     setForm(f => ({
       ...f,
       host: item.host,
@@ -348,19 +396,19 @@ function ConnectForm({ call, onConnect, onCancel }) {
     }))
   }
 
-  async function deleteHistoryItem(e, id) {
+  async function deleteHistoryItem(e: React.MouseEvent, id: string) {
     e.stopPropagation()
     await call('delete-history', { id }).catch(() => {})
     setHistory(h => h.filter(x => x.id !== id))
   }
 
-  async function clearHistory(e) {
+  async function clearHistory(e: React.MouseEvent) {
     e.stopPropagation()
     await call('clear-history').catch(() => {})
     setHistory([])
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.host || !form.username) return
     setConnecting(true)
@@ -368,7 +416,7 @@ function ConnectForm({ call, onConnect, onCancel }) {
     try {
       await onConnect(form)
     } catch (err) {
-      setError(err.message)
+      setError((err as Error).message)
       setConnecting(false)
     }
   }
@@ -478,7 +526,7 @@ function ConnectForm({ call, onConnect, onCancel }) {
               Authentication
             </label>
             <div className="flex gap-1 p-0.5 bg-white/5 rounded-md">
-              {[{ value: 'password', label: 'Password', icon: Lock }, { value: 'key', label: 'Private Key', icon: Key }].map(({ value, label, icon: Icon }) => (
+              {([{ value: 'password', label: 'Password', icon: Lock }, { value: 'key', label: 'Private Key', icon: Key }] as const).map(({ value, label, icon: Icon }) => (
                 <button key={value} type="button" onClick={() => setField('authType', value)}
                   className={cn('flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded text-xs font-medium transition-colors',
                     form.authType === value ? 'bg-blue-600 text-white' : 'text-muted-foreground hover:text-foreground')}>
@@ -517,7 +565,7 @@ function ConnectForm({ call, onConnect, onCancel }) {
   )
 }
 
-function formatRelative(ts) {
+function formatRelative(ts: number): string {
   const diff = Date.now() - ts
   const m = Math.floor(diff / 60000)
   const h = Math.floor(diff / 3600000)
@@ -528,7 +576,14 @@ function formatRelative(ts) {
   return 'just now'
 }
 
-function FormField({ label, icon, children, className }) {
+interface FormFieldProps {
+  label: string
+  icon: React.ReactNode
+  children: React.ReactNode
+  className?: string
+}
+
+function FormField({ label, icon, children, className }: FormFieldProps) {
   return (
     <div className={className}>
       <label className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold mb-1.5">
